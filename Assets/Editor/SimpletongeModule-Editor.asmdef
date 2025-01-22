@@ -1,0 +1,10 @@
+{
+  "name": "SimpletongeModule-Editor",
+  "references": [
+    "SimpletongeModule"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}
