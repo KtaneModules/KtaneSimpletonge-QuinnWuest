@@ -274,13 +274,13 @@ public class SimpletongeScript : MonoBehaviour
             StartCoroutine(MoveButton(i));
             yield return new WaitForSeconds(0.25f);
         }
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         for (int i = 0; i < 8; i++)
         {
             Audio.PlaySoundAtTransform("Pop", ButtonObjs[_solution[i]].transform);
             ButtonObjs[_solution[i]].GetComponent<MeshRenderer>().material.color = new Color32(0, 0, 255, 255);
             ButtonTexts[_solution[i]].color = new Color32(255, 255, 255, 255);
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.125f);
         }
         yield return new WaitForSeconds(0.5f);
         var duration = 0.5f;
@@ -298,6 +298,7 @@ public class SimpletongeScript : MonoBehaviour
             yield return null;
             elapsed += Time.deltaTime;
         }
+        Audio.PlaySoundAtTransform("Victory", transform);
         duration = 0.75f;
         elapsed = 0f;
         while (elapsed < duration)
@@ -336,7 +337,7 @@ public class SimpletongeScript : MonoBehaviour
 
     private IEnumerator MoveButton(int i)
     {
-        var duration = 2f;
+        var duration = 1f;
         var elapsed = 0f;
         var btnPos = ButtonObjs[_solution[i]].transform.localPosition;
         while (elapsed < duration)
@@ -367,12 +368,33 @@ public class SimpletongeScript : MonoBehaviour
 #pragma warning restore 0414
     private IEnumerator ProcessTwitchCommand(string command)
     {
+        if (_moduleSolved || _correctSolutionInputted)
+        {
+            yield return "sendtochaterror You cannot interact with the module now!";
+            yield break;
+        }
         command = command.Trim().ToUpperInvariant();
-        var m = Regex.Match(command, @"^\s*(press\s+)?(?<col>[ABCDEFGH])(?<row>[12345678])\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        var m = Regex.Match(command, @"^\s*swap(?<coords>(\s+[ABCDEFGH][12345678])+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         if (!m.Success)
             yield break;
+        var coords = Regex.Split(m.Groups["coords"].Value.Trim(), @"\s+");
+        if (coords.Length % 2 != 0)
+        {
+            yield return "sendtochaterror Odd number of coords found in command. Command ignored";
+            yield break;
+        }
+        var list = new List<int>();
+        for (int i = 0; i < coords.Length; i++)
+            list.Add((coords[i][1] - '1') * 8 + (coords[i][0] - 'A'));
         yield return null;
-        ButtonSels[(m.Groups["row"].Value[0] - '0' - 1) * 8 + (m.Groups["col"].Value[0] - 'A')].OnInteract();
+        yield return "solve";
+        for (int i = 0; i < list.Count; i++)
+        {
+            ButtonSels[list[i]].OnInteract();
+            yield return new WaitForSeconds(0.2f);
+            if (_correctSolutionInputted)
+                yield break;
+        }
     }
 
     private IEnumerator TwitchHandleForcedSolve()
