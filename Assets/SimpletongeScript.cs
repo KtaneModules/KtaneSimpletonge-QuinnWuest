@@ -324,11 +324,11 @@ public class SimpletongeScript : MonoBehaviour
         elapsed = 0f;
         while (elapsed < duration)
         {
-            PodiumObj.transform.localPosition = new Vector3(0, Mathf.Lerp(-0.1f, -0.05f, elapsed / duration), 0);
+            PodiumObj.transform.localPosition = new Vector3(0, Mathf.Lerp(-0.1f, -0.04f, elapsed / duration), 0);
             yield return null;
             elapsed += Time.deltaTime;
         }
-        PodiumObj.transform.localPosition = new Vector3(0, -0.05f, 0);
+        PodiumObj.transform.localPosition = new Vector3(0, -0.04f, 0);
         _moduleSolved = true;
         Module.HandlePass();
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
