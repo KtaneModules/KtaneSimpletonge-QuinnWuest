@@ -20159,10 +20159,13 @@ MonoBehaviour:
   HighlightPrefab: {fileID: 100000, guid: d78a484c6e87f1b47b6596ac080fe942, type: 2}
   AudioVolume: 0.25
   AudioClips:
+  - {fileID: 8300000, guid: 570c934a32c9b614fb901e74130ae4aa, type: 3}
   - {fileID: 8300000, guid: ef2d92065edadbf4aba6d8e0a097fb6d, type: 3}
   - {fileID: 8300000, guid: cfdb76a49b9f8fa4a84232ca95decf4a, type: 3}
-  - {fileID: 8300000, guid: 5e73f895e9eed6043a9f86f02cff85ae, type: 3}
-  - {fileID: 8300000, guid: 2fbc340af515a6b448aee745d34d9a27, type: 3}
+  - {fileID: 8300000, guid: 131e71872d6f25b488c9c8a83090eca7, type: 3}
+  - {fileID: 8300000, guid: 48e016e4d05133f40ab3b971e930c9a0, type: 3}
+  - {fileID: 8300000, guid: 51d93d4f6ef970b408e4abbd4161d844, type: 3}
+  - {fileID: 8300000, guid: 9aeb5685ba8cae244b37bff1aebe2004, type: 3}
   StrikeCount: 3
   TimeLimit: 600
   BombSize: 1

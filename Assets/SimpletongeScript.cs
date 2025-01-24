@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
@@ -26,8 +25,6 @@ public class SimpletongeScript : MonoBehaviour
     private int _moduleId;
     private static int _moduleIdCounter = 1;
     private bool _moduleSolved;
-
-    private bool _activated;
 
     private static readonly string[] _queenPuzzles = new string[] {
         "...#..........#...#............#.#..........#...#............#..",
@@ -128,7 +125,8 @@ public class SimpletongeScript : MonoBehaviour
     private char[] _grid;
     private int[] _solution;
     private List<int> _input = new List<int>();
-    private bool _correctSolutionInputted;
+    private bool _canInteract = true;
+    private bool _activated;
 
     private void Start()
     {
@@ -178,12 +176,13 @@ public class SimpletongeScript : MonoBehaviour
         {
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, ButtonSels[btn].transform);
             ButtonSels[btn].AddInteractionPunch(0.5f);
-            if (_moduleSolved || _correctSolutionInputted)
+            if (_moduleSolved || !_canInteract)
                 return false;
             if (!_activated)
             {
+                _canInteract = false;
                 _activated = true;
-                SetPuzzle();
+                StartCoroutine(DoTransition());
                 return false;
             }
             _input.Add(btn);
@@ -202,7 +201,7 @@ public class SimpletongeScript : MonoBehaviour
             ButtonTexts[btn].color = new Color32(0, 0, 255, 255);
             if (_input.Count == 8)
             {
-                _correctSolutionInputted = true;
+                _canInteract = false;
                 StartCoroutine(SolveAnimation());
             }
             return false;
@@ -261,23 +260,45 @@ public class SimpletongeScript : MonoBehaviour
         return true;
     }
 
+    private IEnumerator DoTransition()
+    {
+        Audio.PlaySoundAtTransform("transition", transform);
+        var positions = Enumerable.Range(0, 64).Select(i => ButtonObjs[i].transform.localPosition).ToArray();
+        float totalIters = 90;
+        for (int time = 0; time < totalIters; time++)
+        {
+            for (int i = 0; i < ButtonObjs.Length; i++)
+                ButtonObjs[i].transform.localPosition = new Vector3(positions[i].x + (time / totalIters) * Rnd.Range(-0.002f, 0.002f), positions[i].y, positions[i].z + (time / totalIters) * Rnd.Range(-0.002f, 0.002f));
+            yield return new WaitForSeconds(0.05f);
+        }
+        Audio.PlaySoundAtTransform("pop", transform);
+        for (int i = 0; i < ButtonObjs.Length; i++)
+            ButtonObjs[i].transform.localPosition = new Vector3(positions[i].x, positions[i].y, positions[i].z);
+        SetPuzzle();
+        _canInteract = true;
+    }
+
     private IEnumerator SolveAnimation()
     {
+        yield return new WaitForSeconds(0.5f);
+        Audio.PlaySoundAtTransform("kanye", transform);
         var btnsToShrink = Enumerable.Range(0, 64).Where(i => !_solution.Contains(i)).ToArray().Shuffle();
         for (int i = 0; i < btnsToShrink.Length; i++)
         {
             StartCoroutine(ShrinkButton(btnsToShrink[i]));
-            yield return new WaitForSeconds(0.015f);
+            yield return new WaitForSeconds(0.001f);
         }
+        yield return new WaitForSeconds(0.75f);
+        Audio.PlaySoundAtTransform("shift", transform);
         for (int i = 0; i < _solution.Length; i++)
         {
             StartCoroutine(MoveButton(i));
-            yield return new WaitForSeconds(0.25f);
+            yield return new WaitForSeconds(0.05f);
         }
         yield return new WaitForSeconds(1f);
         for (int i = 0; i < 8; i++)
         {
-            Audio.PlaySoundAtTransform("Pop", ButtonObjs[_solution[i]].transform);
+            Audio.PlaySoundAtTransform("pop", ButtonObjs[_solution[i]].transform);
             ButtonObjs[_solution[i]].GetComponent<MeshRenderer>().material.color = new Color32(0, 0, 255, 255);
             ButtonTexts[_solution[i]].color = new Color32(255, 255, 255, 255);
             yield return new WaitForSeconds(0.125f);
@@ -298,7 +319,7 @@ public class SimpletongeScript : MonoBehaviour
             yield return null;
             elapsed += Time.deltaTime;
         }
-        Audio.PlaySoundAtTransform("Victory", transform);
+        Audio.PlaySoundAtTransform("victory", transform);
         duration = 0.75f;
         elapsed = 0f;
         while (elapsed < duration)
@@ -309,7 +330,7 @@ public class SimpletongeScript : MonoBehaviour
         }
         DummyButton.transform.localScale = new Vector3(0.148f, 0.002f, 0.148f);
         ModelComponent.GetComponent<MeshFilter>().mesh = CutOutMeshFilter;
-        Audio.PlaySoundAtTransform("Open", transform);
+        Audio.PlaySoundAtTransform("open", transform);
         duration = 0.5f;
         elapsed = 0f;
         while (elapsed < duration)
@@ -337,7 +358,7 @@ public class SimpletongeScript : MonoBehaviour
 
     private IEnumerator MoveButton(int i)
     {
-        var duration = 1f;
+        var duration = 0.75f;
         var elapsed = 0f;
         var btnPos = ButtonObjs[_solution[i]].transform.localPosition;
         while (elapsed < duration)
@@ -368,7 +389,7 @@ public class SimpletongeScript : MonoBehaviour
 #pragma warning restore 0414
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        if (_moduleSolved || _correctSolutionInputted)
+        if (_moduleSolved || _canInteract)
         {
             yield return "sendtochaterror You cannot interact with the module now!";
             yield break;
@@ -392,7 +413,7 @@ public class SimpletongeScript : MonoBehaviour
         {
             ButtonSels[list[i]].OnInteract();
             yield return new WaitForSeconds(0.2f);
-            if (_correctSolutionInputted)
+            if (_canInteract)
                 yield break;
         }
     }
@@ -404,6 +425,8 @@ public class SimpletongeScript : MonoBehaviour
             ButtonSels[0].OnInteract();
             yield return new WaitForSeconds(0.2f);
         }
+        while (!_canInteract)
+            yield return true;
         if (_input.Count == 0)
             goto okay;
         var soFar = _solution.Take(_input.Count).ToArray();

@@ -14,7 +14,7 @@ MonoBehaviour:
   id: SimpletongeModule
   title: Simpletonge
   author: Quinn Wuest
-  description: "Simpletonge\r\n\r\nMade by Quinn Wuest\r\n\r\n[url=https://ktane.timwi.de/HTML/Simpletonge.html]Manual
+  description: "Evil Simpleton says: DEFEAT.\n\r\nMade by Quinn Wuest\r\n\r\n[url=https://ktane.timwi.de/HTML/Simpletonge.html]Manual
     HTML[/url]\r\n[url=https://ktane.timwi.de/PDF/Simpletonge.pdf]Manual PDF[/url]"
   version: 1.0
   outputFolder: build
